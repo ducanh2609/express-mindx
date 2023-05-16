@@ -5,18 +5,21 @@ const jwt = require('jsonwebtoken')
 const { users, userModel } = require('./models/user')
 const bcrypt = require('bcrypt')
 const { songRouter } = require('./routes/song')
+const cors = require('cors')
 
 const app = express()
 
+mongoose.connect('mongodb://0.0.0.0:27017/mindx')
+
 app.use(express.json())
+app.use(cors())
 
 const authenticationCheck = async (req, res, next) => {
     const token = req.headers.authorization.split(" ")[1]
     const decoded = jwt.verify(token, '123@lol');
     const { username } = decoded
     // Check user co trong co so du lieu khong 
-    const user = await userModel.findOne({ username: username }).populate('songs').select('username')
-
+    const user = await userModel.findOne({ username: username }).populate('songs')
     if (user) {
         req.user = user
         next()

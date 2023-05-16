@@ -16,9 +16,15 @@ const authorizationCheck = (req, res, next) => {
 
 }
 
-userRouter.get('/',authorizationCheck, async (req, res) => {
-    const users = await userModel.find({})
-    res.send(users)
+userRouter.get('/', authorizationCheck, async (req, res) => {
+    try {
+        const users = await userModel.find({})
+        res.send(users)
+    } catch (error) {
+        res.send('Error')
+        console.log(error)
+    }
+
 })
 
 userRouter.get('/me', (req, res) => {
@@ -26,24 +32,24 @@ userRouter.get('/me', (req, res) => {
 })
 
 
-userRouter.get('/', authorizationCheck, async (req,res)=>{
-    const users= await userModel.find({})
+userRouter.get('/', authorizationCheck, async (req, res) => {
+    const users = await userModel.find({})
     const user = req.user
 })
 
 // Update role cua user
-userRouter.patch('/:username', authorizationCheck, async(req,res)=>{
-    const {role, song} = req.body
+userRouter.patch('/:username', authorizationCheck, async (req, res) => {
+    const { role, song } = req.body
     const username = req.params.username
     // Tim xem co user khong findOne
-    const user = await userModel.findOne({username})
+    const user = await userModel.findOne({ username })
     // Neu co thi xoa
     if (user) {
         // Update role cho user nay updateOne
         // await userModel.updateOne({username}, {role})
         // const user = await userModel.findOne({username})
         // const user = await userModel.findOneAndUpdate({username}, {role}, {new: true})
-        const user = await userModel.findOneAndUpdate({username}, {$push: {songs: song}}, {new: true})
+        const user = await userModel.findOneAndUpdate({ username }, { $push: { songs: song } }, { new: true })
         // Gui lai user duoc update cho client
         res.send(user)
     } else {
@@ -55,7 +61,7 @@ userRouter.post('/create', authorizationCheck, async () => {
 
 })
 
-userRouter.delete('/:username', authorizationCheck, async(req, res) => {
+userRouter.delete('/:username', authorizationCheck, async (req, res) => {
     // Lay username tu params
     const username = req.params.username
     // Check xem username co phai cua user hien tai khong?
@@ -65,10 +71,10 @@ userRouter.delete('/:username', authorizationCheck, async(req, res) => {
         return
     }
     // Tim xem user co trong db khong?? userModel.findOne({username})
-    const user = await userModel.findOne({username})
+    const user = await userModel.findOne({ username })
     // Neu co thi xoa
     if (user) {
-        await userModel.deleteOne({username})
+        await userModel.deleteOne({ username })
         res.send('Da xoa,')
     } else {
         res.send('Khong co user')
