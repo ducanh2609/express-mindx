@@ -14,18 +14,29 @@ mongoose.connect('mongodb://0.0.0.0:27017/mindx')
 app.use(express.json())
 app.use(cors())
 
+// app.options('*', (req, res) => {
+//     res.header({ 'Access-Control-Allow-Origin': '*' })
+//     res.sendStatus(204)
+// })
+
 const authenticationCheck = async (req, res, next) => {
-    const token = req.headers.authorization.split(" ")[1]
-    const decoded = jwt.verify(token, '123@lol');
-    const { username } = decoded
-    // Check user co trong co so du lieu khong 
-    const user = await userModel.findOne({ username: username }).populate('songs')
-    if (user) {
-        req.user = user
-        next()
-    } else {
-        res.send('User khong ton tai')
+    try {
+        const token = req.headers.authorization.split(" ")[1]
+        const decoded = jwt.verify(token, '123@lol');
+        const { username } = decoded
+        // Check user co trong co so du lieu khong 
+        const user = await userModel.findOne({ username: username }).populate('songs')
+        if (user) {
+            req.user = user
+            next()
+        } else {
+            res.send('User khong ton tai')
+        }
+    } catch (error) {
+        res.status(401).send('Token expires')
+        console.log(error)
     }
+
 }
 
 app.use('/users', authenticationCheck, userRouter)
@@ -41,9 +52,9 @@ app.post('/login', async (req, res) => {
     const user = await userModel.findOne({ username })
     //nếu có user thì trả token , còn không thì trả lỗi
     if (user && bcrypt.compareSync(password, user.password)) {
-        const token = jwt.sign({ username: username }, '123@lol')
+        const accesstoken = jwt.sign({ username: username }, '123@lol', { expiresIn: '5s' })
         // Tra token cho client
-        res.send({ token: token })
+        res.send({ token: accesstoken })
     } else {
         res.send('khong tim thay')
     }
